@@ -5,7 +5,8 @@ import time
 import json
 import serial
 
-ser = serial.Serial("/dev/ttyS0",115200)
+#ser = serial.Serial("/dev/ttyS0",115200)
+ser = serial.Serial("/dev/serial0",115200)
 dataCMD = json.dumps({'var':"", 'val':0, 'ip':""})
 upperGlobalIP = 'UPPER IP'
 

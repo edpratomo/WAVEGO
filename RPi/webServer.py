@@ -155,7 +155,7 @@ if __name__ == '__main__':
     wifi_check()
     
     print("2. Starting Flask in thread...")
-    flask_thread = Thread(target=run_flask)
+    flask_thread = Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
     print("3. Starting websocket server...")

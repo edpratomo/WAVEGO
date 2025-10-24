@@ -107,7 +107,7 @@ for x in range(1,4):
 		break
 
 for x in range(1,4):
-	if os.system("sudo pip3 install numpy==1.21") == 0:
+	if os.system("sudo pip3 install numpy==1.24.2") == 0:
 		break
 	elif os.system("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple numpy==1.21") == 0:
 		break

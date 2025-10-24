@@ -1,4 +1,5 @@
 import os
+from picamera2 import Picamera2
 import cv2
 from base_camera import BaseCamera
 import numpy as np
@@ -413,10 +414,28 @@ class Camera(BaseCamera):
     CVMode = 'run'
     # CVMode = 'no'
 
+    #def __init__(self):
+    #    if os.environ.get('OPENCV_CAMERA_SOURCE'):
+    #        Camera.set_video_source(int(os.environ['OPENCV_CAMERA_SOURCE']))
+    #    super(Camera, self).__init__()
+
     def __init__(self):
-        if os.environ.get('OPENCV_CAMERA_SOURCE'):
-            Camera.set_video_source(int(os.environ['OPENCV_CAMERA_SOURCE']))
-        super(Camera, self).__init__()
+        self.picam2 = None
+
+    def get_frame(self):
+        if self.picam2 is None:
+            print("[Camera] Initializing Picamera2...")
+            self.picam2 = Picamera2()
+            config = self.picam2.create_preview_configuration(main={"size": (640,480)})
+            self.picam2.configure(config)
+            self.picam2.start()
+            time.sleep(2)
+            print("[Camera] Started")
+
+        frame = self.picam2.capture_array()
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        ret, jpeg = cv2.imencode('.jpg', frame)
+        return jpeg.tobytes()
 
     def robotStop(self):
         robot.robotCtrl.moveStart(speedMove, 'no', 'no')
@@ -484,18 +503,23 @@ class Camera(BaseCamera):
 
     @staticmethod
     def frames():
-        camera = cv2.VideoCapture(Camera.video_source)
-        camera.set(3, 640)
-        camera.set(4, 480)
-        if not camera.isOpened():
-            raise RuntimeError('Could not start camera.')
+        #camera = cv2.VideoCapture(Camera.video_source)
+        #camera.set(3, 640)
+        #camera.set(4, 480)
+        #if not camera.isOpened():
+        #    raise RuntimeError('Could not start camera.')
+
+        picam2 = Picamera2()
+        picam2.configure(picam2.create_preview_configuration(main={"size": (640, 480)}))
+        picam2.start()
 
         cvt = CVThread()
         cvt.start()
 
         while True:
             # read current frame
-            _, img = camera.read()
+            #_, img = camera.read()
+            img = picam2.capture_array()
 
             if Camera.modeSelect == 'none':
                 cvt.pause()
