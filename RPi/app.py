@@ -8,6 +8,7 @@ from flask_cors import *
 from camera_opencv import Camera
 from camera_opencv import commandAct
 import threading
+import time
 
 # Raspberry Pi camera module (requires picamera package)
 # from camera_pi import Camera
@@ -27,9 +28,15 @@ def get_camera():
 def gen(camera_obj):
     """Video streaming generator function."""
     while True:
+        #print(f"[DEBUG] Current Camera.modeSelect = {Camera.modeSelect}")
         frame = camera_obj.get_frame()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        if frame is not None:
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        else:
+            time.sleep(0.01)
+        #yield (b'--frame\r\n'
+        #       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.route('/video_feed')
 def video_feed():
@@ -73,6 +80,7 @@ class webapp:
     #    self.camera = get_camera()
 
     def commandInput(self, inputCommand, valueA=None):
+        #print(f"[DEBUG] inputCommand = {inputCommand}, valueA = {valueA}")
         commandAct(inputCommand, valueA)
 
     def modeselect(self, modeInput):

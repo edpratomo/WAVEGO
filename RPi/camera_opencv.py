@@ -13,6 +13,8 @@ curpath = os.path.realpath(__file__)
 thisPath = "/" + os.path.dirname(curpath)
 
 faceCascade = cv2.CascadeClassifier(thisPath + '/haarcascade_frontalface_default.xml')
+if faceCascade.empty():
+    print(f"[WARN] Cannot load face cascade from {thisPath}/haarcascade_frontalface_default.xml")
 
 upperGlobalIP = 'UPPER IP'
 
@@ -44,7 +46,7 @@ class CVThread(threading.Thread):
         self.CVThreading = 0
         self.CVMode = 'none'
         self.imgCV = None
-        self.faces = None
+        self.faces = []
 
         self.mov_x = None
         self.mov_y = None
@@ -353,6 +355,7 @@ class CVThread(threading.Thread):
                 minSize=(20, 20)
             )
         if len(self.faces):
+            print(f"[INFO] Faces detected: {len(self.faces)}")
             robot.lightCtrl('red', 0)
             robot.buzzerCtrl(1, 0)
         else:
@@ -420,23 +423,49 @@ class Camera(BaseCamera):
     #    super(Camera, self).__init__()
 
     def __init__(self):
-        self.picam2 = None
+        print("[Camera] Initializing Picamera2...")
+        self.picam2 = Picamera2()
+        config = self.picam2.create_preview_configuration(main={"size": (640,480)})
+        self.picam2.configure(config)
+        self.picam2.start()
+
+        self.cvt = CVThread()
+        self.cvt.start()
+
+        # Frame storage
+        self._frame = None
+        self._lock = threading.Lock()
+
+        # Start background thread to update frames
+        self._running = True
+        threading.Thread(target=self._update_frames, daemon=True).start()
+
+        print("[Camera] Started")
+
+    def _update_frames(self):
+        while self._running:
+            img = self.picam2.capture_array()
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+            # Apply CV modes if enabled
+            if Camera.modeSelect != 'none':
+                self.cvt.mode(Camera.modeSelect, img)
+                img = self.cvt.elementDraw(img)
+            else:
+                self.cvt.pause()
+                robot.buzzerCtrl(0, 0)
+
+            # Encode JPEG and store the latest frame
+            with self._lock:
+                self._frame = cv2.imencode('.jpg', img)[1].tobytes()
+
+            # small sleep to reduce CPU usage
+            time.sleep(0.01)
 
     def get_frame(self):
-        if self.picam2 is None:
-            print("[Camera] Initializing Picamera2...")
-            self.picam2 = Picamera2()
-            config = self.picam2.create_preview_configuration(main={"size": (640,480)})
-            self.picam2.configure(config)
-            self.picam2.start()
-            time.sleep(2)
-            print("[Camera] Started")
-
-        frame = self.picam2.capture_array()
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        ret, jpeg = cv2.imencode('.jpg', frame)
-        return jpeg.tobytes()
-
+        with self._lock:
+            return self._frame
+ 
     def robotStop(self):
         robot.robotCtrl.moveStart(speedMove, 'no', 'no')
         time.sleep(0.1)
@@ -508,6 +537,7 @@ class Camera(BaseCamera):
         #camera.set(4, 480)
         #if not camera.isOpened():
         #    raise RuntimeError('Could not start camera.')
+        print("[DEBUG] Calling frames() in camera_opencv.py")
 
         picam2 = Picamera2()
         picam2.configure(picam2.create_preview_configuration(main={"size": (640, 480)}))
@@ -537,6 +567,7 @@ class Camera(BaseCamera):
 
             # encode as a jpeg image and return it
             try:
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                 yield cv2.imencode('.jpg', img)[1].tobytes()
             except:
                 pass
