@@ -530,48 +530,6 @@ class Camera(BaseCamera):
     def set_video_source(source):
         Camera.video_source = source
 
-    @staticmethod
-    def frames():
-        #camera = cv2.VideoCapture(Camera.video_source)
-        #camera.set(3, 640)
-        #camera.set(4, 480)
-        #if not camera.isOpened():
-        #    raise RuntimeError('Could not start camera.')
-        print("[DEBUG] Calling frames() in camera_opencv.py")
-
-        picam2 = Picamera2()
-        picam2.configure(picam2.create_preview_configuration(main={"size": (640, 480)}))
-        picam2.start()
-
-        cvt = CVThread()
-        cvt.start()
-
-        while True:
-            # read current frame
-            #_, img = camera.read()
-            img = picam2.capture_array()
-
-            if Camera.modeSelect == 'none':
-                cvt.pause()
-                robot.buzzerCtrl(0, 0)
-            else:
-                if cvt.CVThreading:
-                    pass
-                else:
-                    cvt.mode(Camera.modeSelect, img)
-                    cvt.resume()
-                try:
-                    img = cvt.elementDraw(img)
-                except:
-                    pass
-
-            # encode as a jpeg image and return it
-            try:
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                yield cv2.imencode('.jpg', img)[1].tobytes()
-            except:
-                pass
-
 
 def commandAct(act, inputA):
     global speedMove
@@ -624,6 +582,12 @@ def commandAct(act, inputA):
     elif 'trackLine' == act:
         Camera.modeSelect = 'findlineCV'
         Camera.CVMode = 'run'
+    elif act == 'motionGet':
+        Camera.modeSelect = 'watchDog'
+    elif act == 'findColor':
+        Camera.modeSelect = 'findColor'
+    elif 'stopCV' == act:
+        Camera.modeSelect = 'none'
     elif 'trackLineOff' == act:
         Camera.modeSelect = 'none'
         time.sleep(0.05)
