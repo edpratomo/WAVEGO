@@ -76,20 +76,20 @@ def index():
     return send_from_directory(dir_path+'/dist', 'index.html')
 
 class webapp:
-    #def __init__(self):
-    #    self.camera = get_camera()
+    def __init__(self):
+        self.camera = get_camera()
 
     def commandInput(self, inputCommand, valueA=None):
         #print(f"[DEBUG] inputCommand = {inputCommand}, valueA = {valueA}")
         commandAct(inputCommand, valueA)
 
     def modeselect(self, modeInput):
-        cam = get_camera()
+        cam = self.camera
         cam.modeSelect = modeInput
         cam.CVMode = 'no'
 
     def colorFindSet(self, H, S, V):
-        cam = get_camera()
+        cam = self.camera
         cam.colorFindSet(H, S, V)
 
     def thread(self):
@@ -103,5 +103,5 @@ class webapp:
         fps_threading.start()
 
     def sendIP(self, ipInput):
-        cam = get_camera()
+        cam = self.camera
         cam.upperIP(ipInput)
