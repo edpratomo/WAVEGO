@@ -45,19 +45,7 @@ for x in range(1,4):
 		break
 
 for x in range(1,4):
-	if os.system("sudo apt-get install -y python3-smbus") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo pip3 install pyserial") == 0:
-		break
-	elif os.system("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple pyserial") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo pip3 install flask") == 0:
-		break
-	elif os.system("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple flask") == 0:
+	if os.system("sudo apt-get install -y python3-smbus python3-serial python3-flask python3-opencv python3-numpy python3-picamera2") == 0:
 		break
 
 for x in range(1,4):
@@ -99,21 +87,7 @@ for x in range(1,4):
 # CMDLINE_FILE.close()
 
 for x in range(1,4):
-	if os.system("sudo apt-get install -y python3-opencv") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo pip3 uninstall -y numpy") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo pip3 install numpy==1.24.2") == 0:
-		break
-	elif os.system("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple numpy==1.21") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev") == 0:
+	if os.system("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev") == 0:
 		break
 
 for x in range(1,4):
